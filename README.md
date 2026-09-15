@@ -2,146 +2,184 @@
 
 # 🎬 Jellyfin Media Server Guide
 
-**A practical Jellyfin 12.x setup guide for a fast, reliable home media server — without turning it into a plugin experiment.**
+### Build a clean, fast Jellyfin 12.x server that is easy to maintain.
 
-![Jellyfin](https://img.shields.io/badge/Jellyfin-12.x-7B5BF2?style=flat-square&logo=jellyfin&logoColor=white)
-![Last reviewed](https://img.shields.io/badge/last%20reviewed-September%202026-informational?style=flat-square)
-![Focus](https://img.shields.io/badge/focus-Direct%20Play%20%2B%20safe%20remote%20access-success?style=flat-square)
+Practical guidance for **installation, media naming, hardware transcoding, clients, plugins, remote access, backups, and troubleshooting** — with a strong bias toward Direct Play and simple setups.
 
-**[Install](INSTALLATION.md)** · **[Media naming](MEDIA-ORGANIZATION.md)** · **[Hardware transcoding](HARDWARE-TRANSCODING.md)** · **[Plugins](PLUGINS.md)** · **[Clients](CLIENTS.md)** · **[Remote access](REMOTE-ACCESS.md)**
+![Jellyfin](https://img.shields.io/badge/Jellyfin-12.x-7B5BF2?style=for-the-badge&logo=jellyfin&logoColor=white)
+![Direct Play](https://img.shields.io/badge/goal-Direct%20Play-2ea44f?style=for-the-badge)
+![Reviewed](https://img.shields.io/badge/reviewed-September%202026-0969da?style=for-the-badge)
+
+**[Quick start ↓](#-30-minute-setup)** · **[Plugins](PLUGINS.md)** · **[Clients](CLIENTS.md)** · **[Transcoding](HARDWARE-TRANSCODING.md)** · **[Remote access](REMOTE-ACCESS.md)**
 
 </div>
 
 ---
 
-## The short version
+## ✨ What a good Jellyfin setup looks like
 
-A good Jellyfin server does not need dozens of plugins or a monster CPU.
+<table>
+<tr>
+<td width="33%" valign="top">
 
-For most home users, the best baseline is:
+### ▶️ Direct Play first
 
-| Part | Recommended starting point |
-| --- | --- |
+Choose clients that can play your media natively before throwing more CPU/GPU at transcoding.
+
+**Goal:** less server work, faster seeking, fewer playback surprises.
+
+</td>
+<td width="33%" valign="top">
+
+### 🧩 Keep plugins intentional
+
+Jellyfin works without a giant plugin stack.
+
+Install a plugin because you can explain exactly what problem it solves.
+
+</td>
+<td width="33%" valign="top">
+
+### 🔐 Remote access safely
+
+Prefer private VPN access or an HTTPS reverse proxy.
+
+Avoid exposing raw `8096` as the default solution.
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🚀 30-minute setup
+
+```text
+Install Jellyfin
+      ↓
+Name media correctly
+      ↓
+Test Direct Play
+      ↓
+Enable hardware transcoding only if needed
+      ↓
+Add a small plugin set
+      ↓
+Back up
+      ↓
+Configure safe remote access
+```
+
+| Step | Do this | Guide |
+|---|---|---|
+| **1** | Install Jellyfin | **[INSTALLATION.md](INSTALLATION.md)** |
+| **2** | Organize movies / TV correctly | **[MEDIA-ORGANIZATION.md](MEDIA-ORGANIZATION.md)** |
+| **3** | Test playback and inspect Direct Play / Transcode status | Jellyfin dashboard |
+| **4** | Configure GPU/iGPU acceleration if necessary | **[HARDWARE-TRANSCODING.md](HARDWARE-TRANSCODING.md)** |
+| **5** | Add only useful plugins | **[PLUGINS.md](PLUGINS.md)** |
+| **6** | Back up config/database | **[BACKUPS-AND-UPGRADES.md](BACKUPS-AND-UPGRADES.md)** |
+| **7** | Add remote access | **[REMOTE-ACCESS.md](REMOTE-ACCESS.md)** |
+
+---
+
+## 🧱 Recommended baseline
+
+| Layer | Starting point |
+|---|---|
 | **Server** | Jellyfin 12.x |
-| **Media storage** | HDD / NAS is fine |
-| **Jellyfin config + database** | SSD if available |
-| **Playback goal** | Direct Play whenever possible |
-| **Transcoding** | Hardware acceleration using the GPU/iGPU you already have |
-| **Core plugins** | OpenSubtitles; Intro Skipper only if you want it |
-| **TV client** | Official client first, then test community alternatives if needed |
-| **Requests** | Seerr for shared/family servers |
-| **Remote access** | VPN, or a reverse proxy with HTTPS |
-| **Backups** | Before every major Jellyfin upgrade |
+| **Media** | HDD / NAS storage is fine |
+| **Config + database** | SSD if available |
+| **Playback target** | Direct Play |
+| **Transcoding** | Intel QSV / NVIDIA NVENC / AMD VA-API or AMF |
+| **Subtitles** | Local subtitles first; OpenSubtitles if useful |
+| **Plugins** | Small, deliberate set |
+| **Requests** | Seerr for shared servers |
+| **Remote access** | VPN or HTTPS reverse proxy |
+| **Backups** | Before every major server upgrade |
 
-> **Do not start by exposing port `8096` directly to the internet and installing twenty plugins.** Build a clean local server first, confirm playback works, then add features one at a time.
-
----
-
-## 🚀 30-minute setup path
-
-1. **[Install Jellyfin](INSTALLATION.md)** on Windows, Debian/Ubuntu, Docker, or your preferred server platform.
-2. **[Organize and name your media](MEDIA-ORGANIZATION.md)** before adding huge libraries.
-3. Play a few representative files and check whether Jellyfin reports **Direct Play**, **Direct Stream**, or **Transcode**.
-4. If transcoding is required, configure **[hardware acceleration](HARDWARE-TRANSCODING.md)**.
-5. Add only the **[plugins](PLUGINS.md)** you can explain why you need.
-6. When local playback is stable, configure **[safe remote access](REMOTE-ACCESS.md)** and **[backups](BACKUPS-AND-UPGRADES.md)**.
-
-That order prevents most beginner setups from becoming difficult to troubleshoot.
+> **Avoid the beginner trap:** public `8096` + 20 plugins + no backup + everything transcoding.
 
 ---
 
-## 🧩 Recommended plugins at a glance
+## 📺 Pick the client before upgrading the server
 
-Jellyfin works perfectly well without third-party plugins. Keep the list small.
+A different client can eliminate transcoding without changing the server at all.
 
-| Plugin / service | Type | Recommendation | Why |
-| --- | --- | --- | --- |
-| **OpenSubtitles** | Official plugin | ✅ Useful | Convenient subtitle fetching |
-| **Intro Skipper** | Community plugin | ✅ If wanted | Intro/credit detection for episodic content |
-| **Playback Reporting** | Official plugin | ◻️ Optional | Playback/activity statistics |
-| **Reports** | Official plugin | ◻️ Optional | Admin/library reports |
-| **Kodi Sync Queue** | Plugin | ◻️ Situational | Useful for Kodi-heavy setups |
-| **Home Screen Sections / UI mods** | Community | ⚠️ Advanced | Nice UI, but more upgrade-sensitive |
-| **Seerr** | Separate service | ✅ Shared servers | Media request/discovery workflow |
+| Platform | Start here | Also test |
+|---|---|---|
+| 📺 Android TV / Google TV / Fire TV | **Official Jellyfin for Android TV** | Wholphin, Moonfin, Kodi |
+| 🤖 Android phone/tablet | **Official Jellyfin** | Streamyfin, Moonfin |
+| 🍎 iPhone / iPad / Apple TV | **Official Jellyfin / Swiftfin where appropriate** | Streamyfin, Moonfin |
+| 💻 Desktop / browser | **Jellyfin Web** | Community clients as needed |
+| 🎞️ Advanced HTPC | **Kodi + Jellyfin** | mpv-based clients |
 
-Read **[PLUGINS.md](PLUGINS.md)** before installing UI-heavy third-party plugins. Jellyfin 12 compatibility matters.
+Test with files that represent your real library: **4K HEVC, HDR, PGS subtitles, high bitrate, TrueHD/DTS-HD/Atmos** if you use them.
 
----
-
-## 📺 Client picks
-
-The client often matters more than people expect. Codec support determines whether your server can Direct Play or has to transcode.
-
-| Platform | Start with | Also worth testing |
-| --- | --- | --- |
-| **Android TV / Google TV / Fire TV** | Official Jellyfin for Android TV | Wholphin, Moonfin, Kodi |
-| **Android phone/tablet** | Official Jellyfin | Streamyfin, Moonfin |
-| **iPhone / iPad / Apple TV** | Official Jellyfin / Swiftfin where appropriate | Streamyfin, Moonfin |
-| **Desktop / browser** | Jellyfin Web | Community desktop clients as needed |
-| **Advanced HTPC** | Kodi + Jellyfin integration | mpv-based community clients |
-
-Before switching clients, test files from **your own library**: 4K HEVC, HDR, high-bitrate remuxes, PGS subtitles, TrueHD/DTS-HD/Atmos, etc.
-
-Full client notes: **[CLIENTS.md](CLIENTS.md)**.
+**[Full client guide →](CLIENTS.md)**
 
 ---
 
-## ⚡ Direct Play vs transcoding
+## ⚡ Playback decision tree
 
 ```text
-Media file
-   │
-   ├─ Client supports video + audio + container + subtitles
-   │        └── Direct Play ✅
-   │
-   ├─ Media streams are supported but container needs adjustment
-   │        └── Direct Stream ✅
-   │
-   └─ Client cannot play part of the file directly
-            └── Transcode → CPU/GPU work
+                    ┌─────────────────────┐
+                    │      Media file     │
+                    └──────────┬──────────┘
+                               │
+                  Can the client play it as-is?
+                         ┌─────┴─────┐
+                        Yes          No
+                         │            │
+                   Direct Play ✅     │
+                                      ▼
+                          Can streams be reused?
+                             ┌────┴────┐
+                            Yes        No
+                             │          │
+                       Direct Stream   Transcode
+                            ✅          ⚙️
 ```
 
-### Hardware acceleration
+### Hardware paths
 
-Jellyfin supports several hardware paths depending on your platform and hardware:
+| Hardware | Typical path |
+|---|---|
+| **Intel** | Quick Sync Video (QSV) |
+| **NVIDIA** | NVENC / NVDEC |
+| **AMD on Linux** | VA-API |
+| **AMD on Windows** | AMF where supported |
 
-- **Intel:** Quick Sync Video (QSV)
-- **NVIDIA:** NVENC / NVDEC
-- **AMD:** VA-API on Linux or AMF on supported Windows setups
+Do not tick every codec blindly. Enable what your hardware actually supports and verify in the dashboard.
 
-Do not enable every codec checkbox blindly. Confirm what your hardware can actually decode/encode and test playback while watching the Jellyfin dashboard.
-
-See **[HARDWARE-TRANSCODING.md](HARDWARE-TRANSCODING.md)** for the practical setup checklist.
+**[Hardware transcoding guide →](HARDWARE-TRANSCODING.md)**
 
 ---
 
-## 🌐 Remote access: safe defaults
+## 🧩 Plugin shortlist
 
-### Best for a private personal server
+| Plugin / service | Type | My default | Use it for |
+|---|---|---|---|
+| **OpenSubtitles** | Official plugin | ✅ Useful | Subtitle fetching |
+| **Intro Skipper** | Community | ✅ If wanted | Intro / credits detection |
+| **Playback Reporting** | Official plugin | ◻️ Optional | Usage statistics |
+| **Reports** | Official plugin | ◻️ Optional | Library/admin reports |
+| **Kodi Sync Queue** | Plugin | ◻️ Situational | Kodi-heavy setups |
+| **UI modification plugins** | Community | ⚠️ Advanced | Cosmetic / layout changes |
+| **Seerr** | Separate service | ✅ Shared servers | Media request workflow |
 
-Use a VPN-style solution such as WireGuard/Tailscale-style networking. Jellyfin stays private and you avoid exposing the server directly.
+Jellyfin 12 is a major-version boundary, so third-party plugin compatibility matters more than usual.
 
-### Best for normal public-domain access
-
-Use a reverse proxy such as Caddy/nginx with HTTPS and a proper domain/DNS setup.
-
-### Avoid as a default
-
-```text
-Internet → router port-forward → Jellyfin :8096
-```
-
-A raw public port is easy, but it removes layers you usually want around an internet-facing service.
-
-Full guide: **[REMOTE-ACCESS.md](REMOTE-ACCESS.md)**.
+**[Read the plugin guide before installing extras →](PLUGINS.md)**
 
 ---
 
-## 📁 Media organization matters more than another scraper
+## 📁 Media naming: fix this before adding scrapers
 
-A clean library begins with predictable naming.
+<table>
+<tr>
+<td width="50%" valign="top">
 
-### Movie
+### 🎞️ Movie
 
 ```text
 Movies/
@@ -149,7 +187,10 @@ Movies/
     └── Dune (2021) [imdbid-tt1160419].mkv
 ```
 
-### TV show
+</td>
+<td width="50%" valign="top">
+
+### 📺 TV show
 
 ```text
 Shows/
@@ -158,93 +199,121 @@ Shows/
         └── Breaking Bad S01E01.mkv
 ```
 
-If metadata is wrong, fix the filename/folder identity before stacking extra metadata providers on top of a bad structure.
+</td>
+</tr>
+</table>
 
-More examples: **[MEDIA-ORGANIZATION.md](MEDIA-ORGANIZATION.md)**.
+Wrong metadata is often a naming/identity problem, not a “need more metadata plugins” problem.
+
+**[Media organization guide →](MEDIA-ORGANIZATION.md)**
 
 ---
 
-## ⚠️ Jellyfin 12 upgrade checklist
+## 🌐 Remote access choices
 
-Jellyfin 12 is a major-version transition. Existing installations should treat the upgrade like a real migration rather than a routine restart.
+| Method | Best for | Recommendation |
+|---|---|---|
+| **VPN / private mesh** | Personal/family use | ✅ Easiest safe default |
+| **Reverse proxy + HTTPS** | Normal public-domain access | ✅ Good when configured correctly |
+| **Raw port-forward to 8096** | Quick testing | ⚠️ Avoid as permanent default |
 
-Before upgrading:
+```text
+Private route
+Device → VPN → Home network → Jellyfin
 
-- [ ] Back up Jellyfin config/database data.
-- [ ] Check every important third-party plugin for explicit Jellyfin 12 support.
-- [ ] Update or temporarily disable incompatible plugins.
-- [ ] Make sure you can restore the backup if the migration fails.
+Public route
+Internet → HTTPS reverse proxy → Jellyfin
+```
+
+**[Remote access guide →](REMOTE-ACCESS.md)**
+
+---
+
+## 🛟 Jellyfin 12 upgrade checklist
+
+- [ ] Back up server config/database.
+- [ ] Check every important third-party plugin for Jellyfin 12 support.
+- [ ] Update or disable incompatible extras.
+- [ ] Make sure you know how to restore the backup.
 - [ ] Upgrade Jellyfin.
-- [ ] Test login, library scanning, subtitles, Direct Play and hardware transcoding.
-- [ ] Re-enable optional UI/plugin extras gradually.
+- [ ] Test login, library scan, subtitles, Direct Play and hardware transcoding.
+- [ ] Re-enable optional UI/plugin modifications gradually.
 
-See **[BACKUPS-AND-UPGRADES.md](BACKUPS-AND-UPGRADES.md)**.
-
----
-
-## Common mistakes this guide tries to prevent
-
-- Building around transcoding instead of improving Direct Play compatibility.
-- Storing Jellyfin's busy database/cache on very slow storage when an SSD is available.
-- Giving the container/service the wrong media permissions.
-- Installing community web/UI plugins without checking Jellyfin 12 compatibility.
-- Assuming a web-interface plugin also changes native TV/mobile clients.
-- Exposing `8096` publicly because it is the shortest tutorial.
-- Upgrading a major version without a backup.
-- Blaming the server for playback issues caused by one client's codec/subtitle support.
-
-When something breaks, start with **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)**.
+**[Backup & upgrade guide →](BACKUPS-AND-UPGRADES.md)**
 
 ---
 
-## 📚 Full guide map
+## 🧯 Fast troubleshooting map
 
-| Goal | Guide |
-| --- | --- |
-| Install the server | **[INSTALLATION.md](INSTALLATION.md)** |
-| Name and organize media | **[MEDIA-ORGANIZATION.md](MEDIA-ORGANIZATION.md)** |
-| Configure GPU/iGPU transcoding | **[HARDWARE-TRANSCODING.md](HARDWARE-TRANSCODING.md)** |
-| Pick plugins | **[PLUGINS.md](PLUGINS.md)** |
-| Pick clients | **[CLIENTS.md](CLIENTS.md)** |
-| Configure remote access | **[REMOTE-ACCESS.md](REMOTE-ACCESS.md)** |
-| Back up / upgrade | **[BACKUPS-AND-UPGRADES.md](BACKUPS-AND-UPGRADES.md)** |
-| Troubleshoot | **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** |
-| Review upstream sources | **[SOURCES.md](SOURCES.md)** |
+| Symptom | Check first |
+|---|---|
+| Constant buffering | Is the client transcoding? Is bitrate too high? |
+| CPU at 100% | Hardware acceleration disabled/misconfigured? |
+| Wrong movie/show match | Folder/file naming and IDs |
+| Subtitles trigger transcode | Subtitle format + client support |
+| Works locally, fails remotely | DNS / reverse proxy / firewall / VPN path |
+| Library cannot see media | Filesystem permissions / container mounts |
+| UI plugin breaks after upgrade | Plugin compatibility with Jellyfin 12 |
 
----
-
-## Guide philosophy
-
-1. **Prefer Direct Play.** Transcoding is a compatibility tool, not the goal.
-2. **Use hardware acceleration when you need transcoding.**
-3. **Keep plugins intentional.** Every extra dependency is another thing to verify during upgrades.
-4. **Secure remote access properly.** Convenience is not a reason to expose services carelessly.
-5. **Back up before major upgrades.**
-6. **Fix naming and permissions before adding more software.**
-7. **Use official/upstream documentation as the source of truth.** Community advice is most useful for practical comparisons and discovering good tools.
+**[Full troubleshooting guide →](TROUBLESHOOTING.md)**
 
 ---
 
-## Legal note
+## 📚 Complete guide map
 
-Jellyfin is a media server. This guide assumes you are storing and accessing media you are authorized to use. Plugins, clients, request managers, and remote-access tools do not change that responsibility.
+<table>
+<tr>
+<td width="50%" valign="top">
 
-## Contributing
+### Build
 
-Corrections and practical improvements are welcome, especially when Jellyfin 12.x changes plugin compatibility, transcoding behavior, or client support.
+- **[Installation](INSTALLATION.md)**
+- **[Media organization](MEDIA-ORGANIZATION.md)**
+- **[Hardware transcoding](HARDWARE-TRANSCODING.md)**
+- **[Plugins](PLUGINS.md)**
+- **[Clients](CLIENTS.md)**
 
-When submitting a correction, prefer:
+</td>
+<td width="50%" valign="top">
 
-1. Jellyfin official documentation;
-2. upstream plugin/client documentation;
-3. reproducible testing;
-4. recent community discussion for subjective client/plugin recommendations.
+### Operate
+
+- **[Remote access](REMOTE-ACCESS.md)**
+- **[Backups & upgrades](BACKUPS-AND-UPGRADES.md)**
+- **[Troubleshooting](TROUBLESHOOTING.md)**
+- **[Sources](SOURCES.md)**
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🌐 Related repos
+
+- **[homelab-from-zero](https://github.com/ish4ra/homelab-from-zero)** — build the server underneath Jellyfin
+- **[selfhosted-picks](https://github.com/ish4ra/selfhosted-picks)** — other self-hosted apps worth running
+- **[open-source-alternatives](https://github.com/ish4ra/open-source-alternatives)** — broader open-source replacements
+- **[stremio-nuvio-streaming-setup-guide](https://github.com/ish4ra/stremio-nuvio-streaming-setup-guide)** — focused Stremio/Nuvio client guide
+
+---
+
+## Guide principles
+
+**Direct Play > brute-force transcoding.**  
+**Simple plugin stack > fragile customization stack.**  
+**Backups > hoping an upgrade works.**  
+**Safe remote access > easiest port-forward.**
+
+This guide assumes you are serving media you are authorized to store and access.
 
 ---
 
 <div align="center">
 
-If this guide saved you setup time, a ⭐ helps other Jellyfin users find it.
+### Useful setup reference?
+
+A ⭐ helps other Jellyfin users find it.
 
 **Last reviewed: September 2026**
 
